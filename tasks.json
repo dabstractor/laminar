@@ -1,0 +1,492 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "MVP - Hierarchical Workflow Engine",
+      "status": "Complete",
+      "description": "Implement the core hierarchical workflow orchestration engine with full observability, tree debugging, and error introspection capabilities.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Core Data Model & Type System",
+          "status": "Complete",
+          "description": "Establish all TypeScript interfaces, types, and foundational data structures for the workflow engine.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Define Core Interfaces",
+              "status": "Complete",
+              "description": "Implement all TypeScript interfaces from PRD sections 3-6.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Implement WorkflowStatus and WorkflowNode interfaces",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None. This is the foundational type layer.\n2. LOGIC: Create file `src/types/workflow.ts`. Implement `WorkflowStatus` type as union of 'idle' | 'running' | 'completed' | 'failed' | 'cancelled'. Implement `WorkflowNode` interface with fields: id (string), name (string), parent (WorkflowNode | null), children (WorkflowNode[]), status (WorkflowStatus), logs (LogEntry[]), events (WorkflowEvent[]), stateSnapshot (SerializedWorkflowState | null). Use forward declaration for LogEntry, WorkflowEvent, SerializedWorkflowState.\n3. OUTPUT: Export `WorkflowStatus`, `WorkflowNode` from `src/types/workflow.ts`. These will be consumed by P1.M1.T1.S2 and P1.M1.T2.S1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Implement LogEntry and LogLevel interfaces",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `WorkflowNode` from `src/types/workflow.ts` (from P1.M1.T1.S1).\n2. LOGIC: Create file `src/types/logging.ts`. Implement `LogLevel` as union type 'debug' | 'info' | 'warn' | 'error'. Implement `LogEntry` interface with: id (string), workflowId (string), timestamp (number), level (LogLevel), message (string), data (unknown, optional), parentLogId (string, optional).\n3. OUTPUT: Export `LogLevel`, `LogEntry` from `src/types/logging.ts`. Update `src/types/workflow.ts` to import and use `LogEntry`. Consumed by P1.M1.T1.S3 and P1.M2.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Implement WorkflowEvent union type",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `WorkflowNode` from `src/types/workflow.ts`, import `WorkflowError` (forward declare if needed).\n2. LOGIC: Create file `src/types/events.ts`. Implement `WorkflowEvent` as discriminated union with types: 'childAttached' (parentId: string, child: WorkflowNode), 'stateSnapshot' (node: WorkflowNode), 'stepStart' (node: WorkflowNode, step: string), 'stepEnd' (node: WorkflowNode, step: string, duration: number), 'error' (node: WorkflowNode, error: WorkflowError), 'taskStart' (node: WorkflowNode, task: string), 'taskEnd' (node: WorkflowNode, task: string), 'treeUpdated' (root: WorkflowNode).\n3. OUTPUT: Export `WorkflowEvent` from `src/types/events.ts`. Update `src/types/workflow.ts` to use this type. Consumed by P1.M1.T2.S1, P1.M3.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S4",
+                  "title": "Implement WorkflowError interface",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `LogEntry` from `src/types/logging.ts`, import `SerializedWorkflowState` (forward declare or from snapshot types).\n2. LOGIC: Create file `src/types/error.ts`. Implement `WorkflowError` interface with: message (string), original (unknown), workflowId (string), stack (string, optional), state (SerializedWorkflowState), logs (LogEntry[]).\n3. OUTPUT: Export `WorkflowError` from `src/types/error.ts`. Consumed by P1.M1.T1.S3, P1.M3.T2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S5",
+                  "title": "Implement Snapshot types and StateFieldMetadata",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None. Independent type definitions.\n2. LOGIC: Create file `src/types/snapshot.ts`. Implement `SerializedWorkflowState` as `Record<string, unknown>`. Implement `StateFieldMetadata` interface with: hidden (boolean, optional), redact (boolean, optional).\n3. OUTPUT: Export `SerializedWorkflowState`, `StateFieldMetadata` from `src/types/snapshot.ts`. Consumed by P1.M1.T1.S1, P1.M1.T1.S4, P1.M3.T3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S6",
+                  "title": "Create barrel export and type index",
+                  "status": "Complete",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M1.T1.S2",
+                    "P1.M1.T1.S3",
+                    "P1.M1.T1.S4",
+                    "P1.M1.T1.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: All type files from P1.M1.T1.S1-S5: `src/types/workflow.ts`, `src/types/logging.ts`, `src/types/events.ts`, `src/types/error.ts`, `src/types/snapshot.ts`.\n2. LOGIC: Create file `src/types/index.ts`. Re-export all types from each file. Ensure no circular dependencies. Create file `src/index.ts` as main entry point exporting from `src/types/index.ts`.\n3. OUTPUT: Export barrel at `src/types/index.ts` and `src/index.ts`. All consumers import from these entry points."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Define Observer Interface",
+              "status": "Complete",
+              "description": "Implement the WorkflowObserver interface for event subscription.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Implement WorkflowObserver interface",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `LogEntry` from `src/types/logging.ts`, `WorkflowEvent` from `src/types/events.ts`, `WorkflowNode` from `src/types/workflow.ts`.\n2. LOGIC: Create file `src/types/observer.ts`. Implement `WorkflowObserver` interface with methods: onLog(entry: LogEntry): void, onEvent(event: WorkflowEvent): void, onStateUpdated(node: WorkflowNode): void, onTreeChanged(root: WorkflowNode): void.\n3. OUTPUT: Export `WorkflowObserver` from `src/types/observer.ts`. Update `src/types/index.ts` to include this export. Consumed by P1.M2.T1, P1.M2.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T3",
+              "title": "Define Decorator Option Interfaces",
+              "status": "Complete",
+              "description": "Implement configuration interfaces for decorators.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S1",
+                  "title": "Implement StepOptions and TaskOptions interfaces",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S6"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None. These are standalone configuration types.\n2. LOGIC: Create file `src/types/decorators.ts`. Implement `StepOptions` interface with: name (string, optional), snapshotState (boolean, optional), trackTiming (boolean, optional), logStart (boolean, optional), logFinish (boolean, optional). Implement `TaskOptions` interface with: name (string, optional), concurrent (boolean, optional).\n3. OUTPUT: Export `StepOptions`, `TaskOptions` from `src/types/decorators.ts`. Update `src/types/index.ts`. Consumed by P1.M3.T1, P1.M3.T2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S2",
+                  "title": "Implement ErrorMergeStrategy interface",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S4"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `WorkflowError` from `src/types/error.ts`.\n2. LOGIC: Create file `src/types/error-strategy.ts`. Implement `ErrorMergeStrategy` interface with: enabled (boolean), maxMergeDepth (number, optional), combine (function (errors: WorkflowError[]) => WorkflowError, optional).\n3. OUTPUT: Export `ErrorMergeStrategy` from `src/types/error-strategy.ts`. Update `src/types/index.ts`. Consumed by P1.M3.T2 for advanced error handling."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Core Runtime Components",
+          "status": "Complete",
+          "description": "Implement the WorkflowLogger, Workflow base class, and core runtime utilities.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Implement WorkflowLogger",
+              "status": "Complete",
+              "description": "Build the hierarchical logging system that emits to observers.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Implement ID generation utility",
+                  "status": "Complete",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None.\n2. LOGIC: Create file `src/utils/id.ts`. Implement `generateId(): string` function that generates unique identifiers. Use crypto.randomUUID() if available, otherwise implement a fallback using timestamp + random suffix pattern.\n3. OUTPUT: Export `generateId` from `src/utils/id.ts`. Create `src/utils/index.ts` barrel. Consumed by P1.M2.T1.S2, P1.M2.T2.S1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Implement WorkflowLogger class core",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M1.T1.S6",
+                    "P1.M1.T2.S1",
+                    "P1.M2.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `WorkflowNode`, `LogEntry`, `LogLevel` from `src/types/index.ts`. Import `WorkflowObserver` from `src/types/observer.ts`. Import `generateId` from `src/utils/id.ts`.\n2. LOGIC: Create file `src/core/logger.ts`. Implement `WorkflowLogger` class with: constructor(node: WorkflowNode, observers: WorkflowObserver[]). Private `emit(entry: LogEntry)` method that pushes to node.logs and calls obs.onLog for each observer. Implement debug/info/warn/error methods that create LogEntry with: id (generateId()), workflowId (this.node.id), timestamp (Date.now()), level, message, data.\n3. OUTPUT: Export `WorkflowLogger` from `src/core/logger.ts`. Consumed by P1.M2.T1.S3, P1.M2.T2.S1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S3",
+                  "title": "Implement WorkflowLogger child logger support",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `WorkflowLogger` class from `src/core/logger.ts` (P1.M2.T1.S2).\n2. LOGIC: Extend `WorkflowLogger` with `child(meta: Partial<LogEntry>): WorkflowLogger` method. Child logger inherits node and observers but prepends parentLogId to all emitted entries. Store meta.id as parentLogId for child entries. Ensure child logs link to parent logs via parentLogId field.\n3. OUTPUT: Updated `WorkflowLogger` with child() method. Consumed by P1.M2.T2 for hierarchical logging."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Implement Workflow Base Class",
+              "status": "Complete",
+              "description": "Build the abstract Workflow base class with parent/child management and event emission.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Implement Workflow class constructor and node initialization",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import all types from `src/types/index.ts`. Import `WorkflowLogger` from `src/core/logger.ts`. Import `generateId` from `src/utils/id.ts`.\n2. LOGIC: Create file `src/core/workflow.ts`. Implement abstract class `Workflow` with: public readonly id (string), public parent (Workflow | null = null), public children (Workflow[] = []), public status (WorkflowStatus = 'idle'), protected readonly logger (WorkflowLogger), protected readonly node (WorkflowNode). Constructor signature: constructor(name?: string, parent?: Workflow). Initialize id via generateId(). Create node object with all required fields. Initialize logger with node and getRootObservers(). If parent provided, call parent.attachChild(this).\n3. OUTPUT: Export `Workflow` from `src/core/workflow.ts`. Consumed by P1.M2.T2.S2, P1.M3.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Implement Workflow observer and child management",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `Workflow` class from `src/core/workflow.ts` (P1.M2.T2.S1).\n2. LOGIC: Add to `Workflow` class: private observers array (WorkflowObserver[]) at root level only. Implement `getRootObservers(): WorkflowObserver[]` that traverses up to root and returns root's observers. Implement `attachChild(child: Workflow)` that pushes child to this.children, pushes child.node to this.node.children, and emits 'childAttached' event. Implement `addObserver(observer: WorkflowObserver)` on root workflow only.\n3. OUTPUT: Updated `Workflow` class with observer management. Consumed by P1.M2.T2.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Implement Workflow event emission and state snapshot",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T2.S2",
+                    "P1.M3.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `Workflow` class from P1.M2.T2.S2. Import `getObservedState` from `src/decorators/observed-state.ts` (P1.M3.T3.S1).\n2. LOGIC: Add to `Workflow` class: protected `emitEvent(event: WorkflowEvent)` that pushes event to node.events and notifies all root observers via onEvent(). If event type is 'treeUpdated', also call onTreeChanged(). Implement `snapshotState()` that calls getObservedState(this), stores in node.stateSnapshot, and notifies observers via onStateUpdated(). Add abstract method signature: abstract run(...args: any[]): Promise<any>.\n3. OUTPUT: Complete `Workflow` base class. Export from `src/core/workflow.ts` and `src/core/index.ts` barrel. Consumed by P1.M3.T1, P1.M3.T2."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Decorator System",
+          "status": "Complete",
+          "description": "Implement @Step, @Task, and @ObservedState decorators with full functionality.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Implement @Step Decorator",
+              "status": "Complete",
+              "description": "Build the Step decorator with timing, logging, snapshot, and error wrapping.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Implement @Step decorator core functionality",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T2.S3",
+                    "P1.M1.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `StepOptions` from `src/types/decorators.ts`. Import `Workflow` from `src/core/workflow.ts`. Import `WorkflowError` from `src/types/error.ts`. Import `getObservedState` from `src/decorators/observed-state.ts`.\n2. LOGIC: Create file `src/decorators/step.ts`. Implement `Step(opts: StepOptions = {}): MethodDecorator`. Return decorator that wraps original method. Extract workflow instance as `this`. Determine stepName from opts.name or property key. If opts.logStart, call wf.logger.info('STEP START: ...'). Emit 'stepStart' event. Execute original method. On success: if opts.snapshotState call wf.snapshotState(). If opts.trackTiming, emit 'stepEnd' with duration. If opts.logFinish, log end. Return result.\n3. OUTPUT: Export `Step` from `src/decorators/step.ts`. Consumed by P1.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Implement @Step error wrapping into WorkflowError",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M3.T1.S1",
+                    "P1.M3.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `Step` decorator from P1.M3.T1.S1. Import `getObservedState` from `src/decorators/observed-state.ts`.\n2. LOGIC: Extend `Step` decorator's catch block. Create `WorkflowError` object with: message (err?.message ?? 'error'), original (err), workflowId (wf.id), stack (err?.stack), state (getObservedState(wf)), logs ([...wf.node.logs]). Emit 'error' event with this WorkflowError. Re-throw the WorkflowError (not original error).\n3. OUTPUT: Complete `Step` decorator with error handling. Export from `src/decorators/step.ts`. Update `src/decorators/index.ts` barrel. Consumed by user workflow implementations."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T2",
+              "title": "Implement @Task Decorator",
+              "status": "Complete",
+              "description": "Build the Task decorator for child workflow attachment and concurrency.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S1",
+                  "title": "Implement @Task decorator with child attachment",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T2.S3",
+                    "P1.M1.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `TaskOptions` from `src/types/decorators.ts`. Import `Workflow` from `src/core/workflow.ts`.\n2. LOGIC: Create file `src/decorators/task.ts`. Implement `Task(opts: TaskOptions = {}): MethodDecorator`. Return decorator that wraps original method. Extract workflow as `this`. Determine taskName from opts.name or property key. Emit 'taskStart' event. Execute original method. Validate result is Workflow or Workflow[]. Normalize to array. For each child: set child.parent = wf, call wf.attachChild(child). Emit 'taskEnd' event. Return result.\n3. OUTPUT: Export `Task` from `src/decorators/task.ts`. Consumed by P1.M3.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S2",
+                  "title": "Implement @Task concurrent execution support",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M3.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `Task` decorator from P1.M3.T2.S1.\n2. LOGIC: Extend `Task` decorator. If opts.concurrent is true and result is array of Workflows, use Promise.all to run all child workflows concurrently via child.run(). If opts.concurrent is false or not specified, run sequentially. Store execution promises and handle errors appropriately.\n3. OUTPUT: Complete `Task` decorator with concurrency. Export from `src/decorators/task.ts`. Update `src/decorators/index.ts`. Consumed by user workflow implementations."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T3",
+              "title": "Implement @ObservedState Decorator",
+              "status": "Complete",
+              "description": "Build the property decorator for state snapshot tracking.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T3.S1",
+                  "title": "Implement @ObservedState decorator and getObservedState utility",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M1.T1.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `StateFieldMetadata`, `SerializedWorkflowState` from `src/types/snapshot.ts`.\n2. LOGIC: Create file `src/decorators/observed-state.ts`. Create module-level WeakMap: `OBSERVED_STATE_FIELDS = new WeakMap<object, Map<string, StateFieldMetadata>>()`. Implement `ObservedState(meta: StateFieldMetadata = {}): PropertyDecorator` that stores metadata in WeakMap keyed by target prototype and property name. Implement `getObservedState(obj: any): SerializedWorkflowState` that retrieves metadata map, iterates over fields, applies redact (replace value with '***') and hidden (skip field) logic, returns state object.\n3. OUTPUT: Export `ObservedState`, `getObservedState` from `src/decorators/observed-state.ts`. Create `src/decorators/index.ts` barrel. Consumed by P1.M2.T2.S3, P1.M3.T1.S2."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M4",
+          "title": "Tree Debugger System",
+          "status": "Complete",
+          "description": "Implement the WorkflowTreeDebugger API for real-time tree visualization.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M4.T1",
+              "title": "Implement Observable Event Stream",
+              "status": "Complete",
+              "description": "Build the event observable for real-time subscription.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T1.S1",
+                  "title": "Implement lightweight Observable class",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `WorkflowEvent` from `src/types/events.ts`.\n2. LOGIC: Create file `src/utils/observable.ts`. Implement generic `Observable<T>` class with: private subscribers (Set<(value: T) => void>), subscribe(callback: (value: T) => void): () => void (returns unsubscribe function), next(value: T) that notifies all subscribers. Keep implementation minimal without external dependencies.\n3. OUTPUT: Export `Observable` from `src/utils/observable.ts`. Update `src/utils/index.ts`. Consumed by P1.M4.T2.S1."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M4.T2",
+              "title": "Implement WorkflowTreeDebugger",
+              "status": "Complete",
+              "description": "Build the tree debugger with traversal and string rendering.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T2.S1",
+                  "title": "Implement WorkflowTreeDebugger core",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M4.T1.S1",
+                    "P1.M2.T2.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `Observable` from `src/utils/observable.ts`. Import `WorkflowNode`, `WorkflowEvent` from `src/types/index.ts`. Import `WorkflowObserver` from `src/types/observer.ts`. Import `Workflow` from `src/core/workflow.ts`.\n2. LOGIC: Create file `src/debugger/tree-debugger.ts`. Implement `WorkflowTreeDebugger` class with: private root (WorkflowNode), public events (Observable<WorkflowEvent>), constructor(workflow: Workflow) that stores workflow.node as root and registers as observer. Implement `getTree(): WorkflowNode` returning root. Implement `getNode(id: string): WorkflowNode | undefined` with recursive tree search.\n3. OUTPUT: Export `WorkflowTreeDebugger` from `src/debugger/tree-debugger.ts`. Consumed by P1.M4.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T2.S2",
+                  "title": "Implement tree string rendering methods",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M4.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: `WorkflowTreeDebugger` class from P1.M4.T2.S1.\n2. LOGIC: Extend `WorkflowTreeDebugger` with: `toTreeString(node?: WorkflowNode): string` that renders ASCII tree structure using box-drawing characters (├─, └─, │). Show node name, status, child count. Default to root if no node provided. Implement `toLogString(node?: WorkflowNode): string` that renders all logs from node and descendants in chronological order with timestamp, level, message. Format: '[timestamp] [level] [workflowName] message'.\n3. OUTPUT: Complete `WorkflowTreeDebugger`. Create `src/debugger/index.ts` barrel. Update main `src/index.ts` to export debugger. Consumed by terminal UI implementations."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M5",
+          "title": "Integration & Validation",
+          "status": "Complete",
+          "description": "Validate the complete system works together with integration tests and example workflows.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M5.T1",
+              "title": "Build Example Workflow Suite",
+              "status": "Complete",
+              "description": "Create the TDDOrchestrator and TestCycleWorkflow examples from PRD.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M5.T1.S1",
+                  "title": "Implement TestCycleWorkflow example",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M3.T1.S2",
+                    "P1.M3.T2.S2",
+                    "P1.M3.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `Workflow` from `src/core/workflow.ts`. Import `Step`, `ObservedState` from `src/decorators/index.ts`.\n2. LOGIC: Create file `src/examples/test-cycle-workflow.ts`. Implement `TestCycleWorkflow extends Workflow` with: @ObservedState() currentTest: string. Implement @Step({ snapshotState: true }) generateTest() that sets currentTest and returns mock test. Implement @Step() runTest() that may throw error. Implement @Step() updateImplementation(). Implement run() that calls steps in sequence.\n3. OUTPUT: Export `TestCycleWorkflow` from `src/examples/test-cycle-workflow.ts`. Consumed by P1.M5.T1.S2 for integration."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M5.T1.S2",
+                  "title": "Implement TDDOrchestrator example",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M5.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `Workflow` from `src/core/workflow.ts`. Import `Step`, `Task` from `src/decorators/index.ts`. Import `TestCycleWorkflow` from `src/examples/test-cycle-workflow.ts`.\n2. LOGIC: Create file `src/examples/tdd-orchestrator.ts`. Implement `TDDOrchestrator extends Workflow` with: @Step({ logStart: true }) setupEnvironment() that performs setup logic. @Task() runCycle() that returns new TestCycleWorkflow('Cycle', this). Implement run() with try/catch that calls setupEnvironment(), runCycle(), and handles WorkflowError for restart decisions.\n3. OUTPUT: Export `TDDOrchestrator` from `src/examples/tdd-orchestrator.ts`. Create `src/examples/index.ts` barrel. Consumed by integration tests."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M5.T2",
+              "title": "End-to-End Integration Validation",
+              "status": "Complete",
+              "description": "Validate complete system integration with tree mirroring.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M5.T2.S1",
+                  "title": "Validate tree mirroring accuracy",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M5.T1.S2",
+                    "P1.M4.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import `TDDOrchestrator` from `src/examples/tdd-orchestrator.ts`. Import `WorkflowTreeDebugger` from `src/debugger/tree-debugger.ts`.\n2. LOGIC: Create file `src/__tests__/integration/tree-mirroring.test.ts`. Create test that: instantiates TDDOrchestrator, attaches WorkflowTreeDebugger, runs workflow, verifies getTree() returns node structure matching workflow.node exactly (1:1 mirror). Verify parent/child relationships. Verify all events captured. Verify logs exist at correct nodes. Test error scenarios produce proper WorkflowError with state snapshot.\n3. OUTPUT: Integration test file validating PRD requirement: 'All logs & events must form a perfect 1:1 tree mirror of the workflow execution tree in memory'. Consumed by CI pipeline."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M5.T2.S2",
+                  "title": "Validate observer event delivery",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M5.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Import test utilities from P1.M5.T2.S1. Import `WorkflowObserver` from `src/types/observer.ts`.\n2. LOGIC: Create file `src/__tests__/integration/observer-events.test.ts`. Create mock observer implementing WorkflowObserver. Attach to root workflow. Run workflow. Verify onLog called for each log entry. Verify onEvent called for each event type (childAttached, stepStart, stepEnd, taskStart, taskEnd, treeUpdated). Verify onStateUpdated called when snapshotState triggers. Verify onTreeChanged called on tree mutations.\n3. OUTPUT: Integration test file validating observer contract. Ensures debugger receives all events for real-time updates."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M5.T3",
+              "title": "Package Export Finalization",
+              "status": "Complete",
+              "description": "Finalize public API exports and package configuration.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M5.T3.S1",
+                  "title": "Finalize public API surface",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M5.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: All modules from previous subtasks: `src/types/index.ts`, `src/core/index.ts`, `src/decorators/index.ts`, `src/debugger/index.ts`, `src/utils/index.ts`.\n2. LOGIC: Update `src/index.ts` as main entry point. Export all public types (WorkflowNode, WorkflowStatus, LogEntry, WorkflowEvent, WorkflowError, etc.). Export Workflow base class. Export decorators (Step, Task, ObservedState). Export WorkflowTreeDebugger. Export WorkflowObserver interface. Do NOT export internal utilities or WeakMaps. Update package.json main/module/types fields.\n3. OUTPUT: Clean public API at `src/index.ts`. Package ready for npm publish or local consumption."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
