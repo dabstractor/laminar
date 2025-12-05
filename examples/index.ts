@@ -4,7 +4,26 @@
  * This file runs all examples demonstrating the features of the
  * Laminar workflow orchestration engine.
  *
- * Run individual examples:
+ * WORKFLOW EXAMPLES (synchronous, no API key required):
+ *   npx tsx examples/index.ts
+ *
+ * AGENT/PROMPT EXAMPLES (requires ANTHROPIC_API_KEY):
+ *
+ *   Basic Examples:
+ *   - npx tsx examples/basic-prompt.ts       - Simple prompt execution
+ *   - npx tsx examples/basic-agent.ts        - Agent with multiple prompts
+ *   - npx tsx examples/basic-workflow.ts     - AgentWorkflow with steps
+ *   - npx tsx examples/cache-usage.ts        - Prompt result caching
+ *
+ *   Advanced Examples:
+ *   - npx tsx examples/tool-calling-agent.ts       - Agent with tools
+ *   - npx tsx examples/streaming-example.ts        - Token streaming
+ *   - npx tsx examples/reflection-retry.ts         - Self-correcting agents
+ *   - npx tsx examples/multi-step-orchestration.ts - Complex workflows
+ *   - npx tsx examples/observability-demo.ts       - Full observability
+ *   - npx tsx examples/combined-features.ts        - All features together
+ *
+ * Run individual workflow examples:
  *   npm run start:basic
  *   npm run start:decorators
  *   npm run start:parent-child
@@ -12,16 +31,16 @@
  *   npm run start:errors
  *   npm run start:concurrent
  *
- * Run all examples:
+ * Run all workflow examples:
  *   npm run start:all
  */
 
-import { runBasicWorkflowExample } from './examples/01-basic-workflow.js';
-import { runDecoratorOptionsExample } from './examples/02-decorator-options.js';
-import { runParentChildExample } from './examples/03-parent-child.js';
-import { runObserversDebuggerExample } from './examples/04-observers-debugger.js';
-import { runErrorHandlingExample } from './examples/05-error-handling.js';
-import { runConcurrentTasksExample } from './examples/06-concurrent-tasks.js';
+import { runBasicWorkflowExample } from './core-basic-workflow.js';
+import { runDecoratorOptionsExample } from './core-decorator-options.js';
+import { runParentChildExample } from './core-parent-child.js';
+import { runObserversDebuggerExample } from './core-observers-debugger.js';
+import { runErrorHandlingExample } from './core-error-handling.js';
+import { runConcurrentTasksExample } from './core-concurrent-tasks.js';
 
 const BANNER = `
 ╔═══════════════════════════════════════════════════════════════╗
@@ -114,6 +133,17 @@ Summary of Features Demonstrated:
 ✓ Error recovery patterns
 ✓ Sequential vs parallel execution
 ✓ Fan-out / fan-in patterns
+
+Agent/Prompt Features (see separate examples with ANTHROPIC_API_KEY):
+─────────────────────────────────────────────────────────────────────
+✓ AgentWorkflow for multi-step orchestration
+✓ Agent with prompts, retries, and reflection
+✓ PromptInstance with variable interpolation
+✓ Tool calling with agentic loops
+✓ Streaming for real-time output
+✓ Caching for prompt results
+✓ Token usage tracking and cost estimation
+✓ Full observability with tree debugging
 `);
 }
 

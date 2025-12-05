@@ -21,8 +21,8 @@ import {
   WorkflowError,
   LogEntry,
   WorkflowNode,
-} from 'laminar';
-import { printHeader, printSection, sleep } from '../utils/helpers.js';
+} from '../src/index.js';
+import { printHeader, printSection, sleep } from './utils/helpers.js';
 
 /**
  * Workflow that demonstrates error wrapping

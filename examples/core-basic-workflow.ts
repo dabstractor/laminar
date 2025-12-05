@@ -8,8 +8,8 @@
  * - Basic execution flow
  */
 
-import { Workflow, WorkflowTreeDebugger } from 'laminar';
-import { printHeader, printSection, sleep } from '../utils/helpers.js';
+import { Workflow, WorkflowTreeDebugger } from '../src/index.js';
+import { printHeader, printSection, sleep } from './utils/helpers.js';
 
 /**
  * A simple data processing workflow
