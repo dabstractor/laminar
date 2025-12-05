@@ -1,0 +1,840 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Core Agent & Prompt Foundation",
+      "status": "Planned",
+      "description": "Establish the foundational Agent and Prompt abstractions that integrate with the existing Workflow engine, enabling hierarchical execution with full observability.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Type System & Interfaces",
+          "status": "Planned",
+          "description": "Define all TypeScript interfaces and types for Agent, Prompt, and related configurations following strict typing patterns established in the codebase.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Core Configuration Types",
+              "status": "Planned",
+              "description": "Define the configuration interfaces for Workflow, Step, Agent, and Prompt as specified in PRD sections 2.1-2.4.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Define WorkflowConfig and WorkflowRunState interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None (foundational type).\n2. LOGIC: Create /src/types/workflow-config.ts with WorkflowConfig interface per PRD section 2.1: id?, name?, steps: WorkflowStepConfig[], defaultModel?, enableCache?, logLevel?. Also define WorkflowRunState with timestamps, metadata, and run status. Export LogLevel type if not already in /src/types/logging.ts.\n3. OUTPUT: Export WorkflowConfig, WorkflowRunState, WorkflowRunResult interfaces from /src/types/index.ts for consumption by P1.M1.T1.S2 and P1.M2.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Define WorkflowStepConfig interface",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P1.M1.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: WorkflowConfig interface from P1.M1.T1.S1 which references WorkflowStepConfig[].\n2. LOGIC: Create WorkflowStepConfig in /src/types/step-config.ts per PRD section 2.2: id?, name?, agents: AgentConfig[]. Keep minimal - step is a container for agents.\n3. OUTPUT: Export WorkflowStepConfig from /src/types/index.ts for consumption by P1.M1.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Define AgentConfig and AgentHooks interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: WorkflowStepConfig from P1.M1.T1.S2 which references AgentConfig[].\n2. LOGIC: Create /src/types/agent-config.ts with AgentConfig per PRD section 2.3: id?, name, model?, prompts: PromptConfig[], tools?: ToolDefinition[], enableReflection?, maxRetries?, enableCache?, hooks?: AgentHooks. Define AgentHooks with: beforeRun, afterRun, beforePrompt, afterPrompt, onError, onReflection - all optional async functions.\n3. OUTPUT: Export AgentConfig, AgentHooks, AgentRunResult from /src/types/index.ts for consumption by P1.M1.T1.S4 and P1.M2.T2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S4",
+                  "title": "Define PromptConfig and PromptHooks interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: AgentConfig from P1.M1.T1.S3 which references PromptConfig[].\n2. LOGIC: Create /src/types/prompt-config.ts with PromptConfig per PRD section 2.4: id?, name, system?, user, model?, cacheable?, jsonSchema?, hooks?: PromptHooks. Define PromptHooks with: beforeCall, afterCall, onTool, onMCP, onValidationError. Define PromptResult interface with: content, tokenUsage, duration, toolCalls[], mcpEvents[], error?.\n3. OUTPUT: Export PromptConfig, PromptHooks, PromptResult, PromptInstanceRun from /src/types/index.ts for consumption by P1.M2.T3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S5",
+                  "title": "Define ToolDefinition and ToolCallEvent interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None (foundational type following Anthropic tool spec).\n2. LOGIC: Create /src/types/tool.ts with ToolDefinition following Anthropic's tool schema: name, description, input_schema (JSON Schema object). Define ToolCallEvent with: id, toolName, input, output?, error?, duration, parentPromptId. These attach to PromptInstance per PRD section 5.1.\n3. OUTPUT: Export ToolDefinition, ToolCallEvent from /src/types/index.ts for consumption by P1.M1.T1.S3 and P1.M3.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S6",
+                  "title": "Define MCPEvent interface",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: None (foundational type for MCP integration).\n2. LOGIC: Create /src/types/mcp.ts with MCPEvent per PRD section 5.2: id, type, payload, parentPromptId, timestamp. MCP events attach to PromptInstance event stream similarly to tool calls. Include MCPInterrupt type for interrupt flow support.\n3. OUTPUT: Export MCPEvent, MCPInterrupt from /src/types/index.ts for consumption by P1.M1.T1.S4 and P1.M3.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Event Hierarchy Types",
+              "status": "Planned",
+              "description": "Extend the existing event system to support the full workflow → step → agent → prompt → tool/MCP hierarchy.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Extend WorkflowEvent discriminated union",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S4",
+                    "P1.M1.T1.S5",
+                    "P1.M1.T1.S6"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Existing /src/types/events.ts with WorkflowEvent union. PromptResult from P1.M1.T1.S4, ToolCallEvent from P1.M1.T1.S5, MCPEvent from P1.M1.T1.S6.\n2. LOGIC: Extend WorkflowEvent in /src/types/events.ts to add new event types per PRD section 6: AgentRunStart, AgentRunEnd, PromptInstanceStart, PromptInstanceEnd, ToolCallStart, ToolCallEnd, MCPEventReceived. Each event includes: type discriminant, id, parentId (for hierarchy), timestamp, and type-specific payload.\n3. OUTPUT: Extended WorkflowEvent union exported from /src/types/events.ts for consumption by P1.M2.T2 and P1.M2.T3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Define LogEntry extensions for agent/prompt hierarchy",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Existing /src/types/logging.ts with LogEntry. Extended WorkflowEvent from P1.M1.T2.S1.\n2. LOGIC: Extend LogEntry in /src/types/logging.ts to include optional fields: agentId?, promptId?, toolId?, tokenUsage?, retryCount?, reflectionMetadata?. These enable the hierarchical log structure per PRD section 6.\n3. OUTPUT: Extended LogEntry exported from /src/types/logging.ts for consumption by P1.M2.T2 logging integration."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Core Class Implementations",
+          "status": "Planned",
+          "description": "Implement the Agent, PromptInstance, and extended Workflow classes that form the execution hierarchy.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "AgentWorkflow Class",
+              "status": "Planned",
+              "description": "Create a new Workflow class that implements the PRD's workflow execution model with steps containing agents.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Create AgentWorkflow base class",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: WorkflowConfig, WorkflowRunState, WorkflowStepConfig from P1.M1.T1.S1/S2. Existing abstract Workflow class in /src/core/workflow.ts.\n2. LOGIC: Create /src/core/agent-workflow.ts extending or composing with existing Workflow. Constructor takes WorkflowConfig. Implement run(input: any): Promise<WorkflowRunResult> that: creates WorkflowRunState with timestamps, iterates steps in order, aggregates results. Use existing logger and event emitter patterns. Do NOT implement agent execution yet - mock agent.run() to return placeholder.\n3. OUTPUT: AgentWorkflow class exported from /src/core/agent-workflow.ts and /src/core/index.ts for consumption by P1.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Implement step execution loop",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: AgentWorkflow class from P1.M2.T1.S1 with placeholder agent execution.\n2. LOGIC: In /src/core/agent-workflow.ts, implement private executeStep(step: WorkflowStepConfig, input: any) method per PRD section 2.2: iterate step.agents in order, call agent.run(stepInput), collect AgentRunResult[]. Emit StepStart/StepEnd events using existing event emitter. Wire step execution into run() method.\n3. OUTPUT: Updated AgentWorkflow with step execution for consumption by P1.M2.T2.S2 which will provide real Agent instances."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Agent Class",
+              "status": "Planned",
+              "description": "Implement the Agent class that executes PromptInstances with tools, model binding, and observability.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Create Agent class skeleton with config and model resolution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: AgentConfig, AgentHooks, AgentRunResult from P1.M1.T1.S3.\n2. LOGIC: Create /src/core/agent.ts with Agent class. Constructor takes AgentConfig and optional parentModel (from workflow). Implement resolveModel() per PRD section 3: prompt.model || agent.model || parentModel || throw Error. Store anthropicClient placeholder (do not connect yet). Generate unique id if not provided.\n3. OUTPUT: Agent class with config, id, resolveModel() exported from /src/core/agent.ts and /src/core/index.ts for consumption by P1.M2.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Implement Agent.run() with prompt sequence execution",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T2.S1",
+                    "P1.M2.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Agent class from P1.M2.T2.S1 with resolveModel(). PromptInstance class from P1.M2.T3.S1.\n2. LOGIC: In /src/core/agent.ts, implement run(input: any): Promise<AgentRunResult>. For each prompt in config.prompts: create PromptInstance, call instance.run(), collect PromptResult. Track aggregate: tokenUsage, totalDuration, toolInvocations[], mcpEvents[], errors[]. Call beforePrompt/afterPrompt hooks if defined. Return AgentRunResult.\n3. OUTPUT: Functional Agent.run() for consumption by P1.M2.T1.S2 step execution and P1.M2.T2.S3 retry logic."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Implement Agent hooks execution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Agent.run() from P1.M2.T2.S2, AgentHooks interface.\n2. LOGIC: In /src/core/agent.ts, wrap run() logic with hook calls per PRD section 8: await hooks.beforeRun?.(input), await hooks.afterRun?.(result), await hooks.onError?.(error). Hooks may modify input/output but not prompt templates. Handle hook errors gracefully - log but don't fail agent.\n3. OUTPUT: Agent with full hook support for consumption by P1.M2.T2.S4."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S4",
+                  "title": "Implement Agent retry logic with maxRetries",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T2.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Agent.run() with hooks from P1.M2.T2.S3, config.maxRetries field.\n2. LOGIC: In /src/core/agent.ts, wrap prompt execution in retry loop. On PromptResult.error: if retryCount < maxRetries, increment count, log retry event, re-execute. Track retryCount in AgentRunResult. If all retries exhausted, include final error. Call onError hook on each failure.\n3. OUTPUT: Agent with retry support for consumption by P1.M2.T2.S5 reflection integration."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S5",
+                  "title": "Implement Agent event emission",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T2.S4",
+                    "P1.M1.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Agent with retry from P1.M2.T2.S4. Extended WorkflowEvent union from P1.M1.T2.S1.\n2. LOGIC: In /src/core/agent.ts, integrate with existing Observable from /src/utils/observable.ts. Emit AgentRunStart at run() start with {agentId, input, timestamp}. Emit AgentRunEnd with {agentId, result, duration, tokenUsage}. Pass Observable to PromptInstances for nested event propagation.\n3. OUTPUT: Agent with event emission for consumption by P1.M3.T3 tree debugger integration."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T3",
+              "title": "PromptInstance Class",
+              "status": "Planned",
+              "description": "Implement the immutable PromptInstance that executes a single prompt against the Anthropic API.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S1",
+                  "title": "Create PromptInstance class with immutable config",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S4"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptConfig, PromptHooks, PromptResult from P1.M1.T1.S4.\n2. LOGIC: Create /src/core/prompt-instance.ts with PromptInstance class. Constructor takes PromptConfig (frozen via Object.freeze), resolvedModel string, and input object. Store as readonly fields. Generate unique id. Do NOT implement run() yet.\n3. OUTPUT: PromptInstance class exported from /src/core/prompt-instance.ts and /src/core/index.ts for consumption by P1.M2.T3.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S2",
+                  "title": "Implement template variable interpolation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance from P1.M2.T3.S1 with promptConfig containing user template like 'Analyze: {{input.text}}'.\n2. LOGIC: In /src/core/prompt-instance.ts, implement private interpolate(template: string, context: object): string. Use regex to find {{path.to.value}} patterns, resolve from context using lodash-style path access (implement inline, no deps). Handle missing values by leaving placeholder or throwing configurable error.\n3. OUTPUT: PromptInstance with interpolate() for consumption by P1.M2.T3.S3 run() implementation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S3",
+                  "title": "Implement PromptInstance.run() core execution",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M2.T3.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance with interpolate() from P1.M2.T3.S2. Anthropic SDK types.\n2. LOGIC: In /src/core/prompt-instance.ts, implement run(): Promise<PromptResult>. Build Anthropic message: {model: resolvedModel, system: interpolate(config.system), messages: [{role: 'user', content: interpolate(config.user)}]}. For now, mock API call (return placeholder). Track startTime/endTime for duration. Return PromptResult with content, tokenUsage placeholders.\n3. OUTPUT: PromptInstance.run() skeleton for consumption by P1.M2.T3.S4 API integration."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S4",
+                  "title": "Implement PromptInstance hooks execution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T3.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance.run() from P1.M2.T3.S3, PromptHooks interface.\n2. LOGIC: In /src/core/prompt-instance.ts, wrap run() logic with hook calls per PRD section 8: beforeCall can modify input, afterCall can modify output, onValidationError called on schema validation failure. Handle hook errors gracefully.\n3. OUTPUT: PromptInstance with hooks for consumption by P1.M2.T3.S5."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S5",
+                  "title": "Implement PromptInstance event emission",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T3.S4",
+                    "P1.M1.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance with hooks from P1.M2.T3.S4. Extended WorkflowEvent from P1.M1.T2.S1.\n2. LOGIC: In /src/core/prompt-instance.ts, accept Observable in constructor from parent Agent. Emit PromptInstanceStart at run() start. Emit PromptInstanceEnd with result including tokenUsage, duration. Wire up for tool/MCP event passthrough (implemented later).\n3. OUTPUT: PromptInstance with event emission for consumption by P1.M3.T1 tool integration."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Tool & MCP Integration",
+          "status": "Planned",
+          "description": "Integrate tool calling and MCP event handling into the PromptInstance execution flow.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Tool Execution Layer",
+              "status": "Planned",
+              "description": "Implement tool calling within PromptInstance following Anthropic tool spec.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Create ToolExecutor class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: ToolDefinition, ToolCallEvent from P1.M1.T1.S5.\n2. LOGIC: Create /src/core/tool-executor.ts with ToolExecutor class. Constructor takes ToolDefinition[] and tool handler map: Record<string, (input: any) => Promise<any>>. Implement execute(toolName: string, input: any): Promise<ToolCallEvent> that finds handler, executes, measures duration, catches errors.\n3. OUTPUT: ToolExecutor class exported from /src/core/tool-executor.ts for consumption by P1.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Integrate tools into PromptInstance.run()",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P1.M3.T1.S1",
+                    "P1.M2.T3.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: ToolExecutor from P1.M3.T1.S1. PromptInstance with event emission from P1.M2.T3.S5.\n2. LOGIC: In /src/core/prompt-instance.ts, modify run() to: include tools in API message, handle tool_use response type, call toolExecutor.execute(), emit ToolCallStart/ToolCallEnd events, collect toolCalls[] in PromptResult. Follow Anthropic agentic loop pattern - continue until no more tool calls.\n3. OUTPUT: PromptInstance with tool execution for consumption by P1.M3.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S3",
+                  "title": "Implement onTool hook integration",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P1.M3.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance with tool execution from P1.M3.T1.S2. PromptHooks.onTool from P1.M1.T1.S4.\n2. LOGIC: In /src/core/prompt-instance.ts, call hooks.onTool?.(toolCall) before each tool execution. Hook can inspect/modify tool input. Log hook invocation.\n3. OUTPUT: PromptInstance with onTool hook for consumption by P1.M3.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T2",
+              "title": "MCP Event Integration",
+              "status": "Planned",
+              "description": "Attach MCP events to PromptInstance event stream following PRD section 5.2.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S1",
+                  "title": "Create MCPHandler class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S6"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: MCPEvent, MCPInterrupt from P1.M1.T1.S6.\n2. LOGIC: Create /src/core/mcp-handler.ts with MCPHandler class. Implement handleEvent(event: MCPEvent, promptId: string): void that attaches parentPromptId, emits to observer. Implement handleInterrupt(interrupt: MCPInterrupt): Promise<void> that pauses and processes interrupt. Keep interface minimal - MCP details TBD.\n3. OUTPUT: MCPHandler class exported from /src/core/mcp-handler.ts for consumption by P1.M3.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S2",
+                  "title": "Integrate MCP into PromptInstance",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M3.T2.S1",
+                    "P1.M3.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: MCPHandler from P1.M3.T2.S1. PromptInstance with tool hooks from P1.M3.T1.S3.\n2. LOGIC: In /src/core/prompt-instance.ts, optionally accept MCPHandler in constructor. During run(), wire MCP events to handler. Emit MCPEventReceived through observer. Collect mcpEvents[] in PromptResult. Call hooks.onMCP?.(event) per PRD section 8.\n3. OUTPUT: PromptInstance with MCP integration for consumption by P1.M3.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T3",
+              "title": "Tree Debugger Integration",
+              "status": "Planned",
+              "description": "Extend existing WorkflowTreeDebugger to visualize agent/prompt/tool hierarchy.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T3.S1",
+                  "title": "Extend tree node types for agents/prompts",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T2.S5",
+                    "P1.M2.T3.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Existing WorkflowNode in /src/types/workflow.ts. Agent events from P1.M2.T2.S5. PromptInstance events from P1.M2.T3.S5.\n2. LOGIC: In /src/types/workflow.ts, extend WorkflowNode to include nodeType: 'workflow' | 'step' | 'agent' | 'prompt' | 'tool' | 'mcp'. Add optional fields: tokenUsage?, toolCalls?, mcpEvents?. Update debugger to handle new node types.\n3. OUTPUT: Extended WorkflowNode for consumption by P1.M3.T3.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T3.S2",
+                  "title": "Update WorkflowTreeDebugger event handlers",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M3.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Extended WorkflowNode from P1.M3.T3.S1. Existing /src/debugger/tree-debugger.ts.\n2. LOGIC: In /src/debugger/tree-debugger.ts, add handlers for AgentRunStart/End, PromptInstanceStart/End, ToolCallStart/End, MCPEventReceived. Create/update nodes in tree. Update renderTree() to show agent/prompt hierarchy with token counts and tool calls.\n3. OUTPUT: Updated WorkflowTreeDebugger for consumption by P2.M1.T3 streaming visualization."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "Anthropic SDK Integration & Runtime Features",
+      "status": "Planned",
+      "description": "Connect the orchestration layer to the Anthropic Agent SDK and implement runtime features: streaming, caching, and reflection.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Anthropic Client Integration",
+          "status": "Planned",
+          "description": "Wire up actual Anthropic API calls with streaming support.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Anthropic Client Wrapper",
+              "status": "Planned",
+              "description": "Create a thin wrapper around the Anthropic SDK for consistent usage across the framework.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Create AnthropicClient wrapper class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Anthropic SDK npm package (@anthropic-ai/sdk).\n2. LOGIC: Create /src/integrations/anthropic-client.ts. Wrapper class takes apiKey in constructor (or from ANTHROPIC_API_KEY env). Expose createMessage(params) and createMessageStream(params) methods. Handle rate limiting with exponential backoff. Log API calls at debug level.\n3. OUTPUT: AnthropicClient class exported from /src/integrations/anthropic-client.ts and /src/integrations/index.ts for consumption by P2.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Integrate AnthropicClient into PromptInstance",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M1.T1.S1",
+                    "P1.M3.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: AnthropicClient from P2.M1.T1.S1. PromptInstance with MCP from P1.M3.T2.S2.\n2. LOGIC: In /src/core/prompt-instance.ts, replace mock API call with real client.createMessage(). Pass tools array from parent agent. Parse response content_block types. Extract token usage from response.usage. Handle API errors with appropriate PromptResult.error.\n3. OUTPUT: PromptInstance with real API integration for consumption by P2.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Token Usage Tracking",
+              "status": "Planned",
+              "description": "Implement comprehensive token usage tracking and aggregation across the hierarchy.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Define TokenUsage interface and aggregation utilities",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Anthropic API response.usage structure.\n2. LOGIC: Create /src/types/token-usage.ts with TokenUsage interface: inputTokens, outputTokens, cacheCreationInputTokens?, cacheReadInputTokens?. Create /src/utils/token-aggregator.ts with aggregate(usages: TokenUsage[]): TokenUsage and format(usage: TokenUsage): string utilities.\n3. OUTPUT: TokenUsage interface and aggregator exported for consumption by P2.M1.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S2",
+                  "title": "Propagate token usage up hierarchy",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M1.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: TokenUsage from P2.M1.T2.S1. Agent and AgentWorkflow classes.\n2. LOGIC: In Agent.run(), aggregate TokenUsage from all PromptResults into AgentRunResult.tokenUsage. In AgentWorkflow.run(), aggregate from all AgentRunResults into WorkflowRunResult.tokenUsage. Include in event emissions and final results.\n3. OUTPUT: Full token tracking across hierarchy for consumption by P2.M1.T3 and logging."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T3",
+              "title": "Streaming Implementation",
+              "status": "Planned",
+              "description": "Implement full streaming support per PRD section 9.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S1",
+                  "title": "Create StreamingPromptInstance variant",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P2.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance from P2.M1.T1.S2. AnthropicClient.createMessageStream().\n2. LOGIC: In /src/core/prompt-instance.ts, add runStreaming(): AsyncGenerator<StreamEvent>. Use client stream API. Yield token chunks as they arrive. Emit PromptTokenReceived events. Handle tool_use blocks mid-stream. Yield final PromptResult when complete.\n3. OUTPUT: PromptInstance.runStreaming() for consumption by P2.M1.T3.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S2",
+                  "title": "Propagate streaming through Agent and Workflow",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M1.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance.runStreaming() from P2.M1.T3.S1.\n2. LOGIC: In Agent, add runStreaming() that yields events from each prompt sequentially. In AgentWorkflow, add runStreaming() that yields through step→agent→prompt hierarchy. Maintain proper event hierarchy labels (workflow/step/agent/prompt/token).\n3. OUTPUT: Full streaming API across hierarchy for consumption by end users and P2.M1.T3.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S3",
+                  "title": "Integrate streaming with tree debugger",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M1.T3.S2",
+                    "P1.M3.T3.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Workflow.runStreaming() from P2.M1.T3.S2. WorkflowTreeDebugger from P1.M3.T3.S2.\n2. LOGIC: In tree debugger, subscribe to streaming events. Update node status in real-time. Show token count incrementing as tokens arrive. Visualize tool calls as they execute. Provide live tree rendering mode.\n3. OUTPUT: Real-time tree visualization during streaming execution."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Caching Layer",
+          "status": "Planned",
+          "description": "Implement parameter-level caching per PRD section 7.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Cache Implementation",
+              "status": "Planned",
+              "description": "Create the caching infrastructure with cache key generation and storage.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Create Cache interface and in-memory implementation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Cache requirements from PRD section 7.\n2. LOGIC: Create /src/cache/cache.ts with Cache interface: get(key), set(key, value, ttl?), delete(key), clear(), has(key). Create /src/cache/memory-cache.ts implementing Cache with Map storage. Support optional TTL per entry.\n3. OUTPUT: Cache interface and MemoryCache exported from /src/cache/index.ts for consumption by P2.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Implement cache key generation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M2.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Cache interface from P2.M2.T1.S1. PRD cache key formula: hash(promptTemplate + resolvedModel + JSON(configOptions) + input).\n2. LOGIC: Create /src/cache/cache-key.ts with generateCacheKey(prompt: PromptConfig, model: string, input: any): string. Use stable JSON stringify (sorted keys) for determinism. Use fast hash (e.g., cyrb53 or similar inline implementation - no deps).\n3. OUTPUT: generateCacheKey() exported for consumption by P2.M2.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S3",
+                  "title": "Integrate caching into PromptInstance",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M2.T1.S2",
+                    "P2.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: generateCacheKey() from P2.M2.T1.S2. PromptInstance from P2.M1.T1.S2.\n2. LOGIC: In PromptInstance.run(), if config.cacheable: check cache before API call, store result on cache miss. Accept optional Cache instance in constructor. Check enableCache flag cascade: prompt.cacheable ?? agent.enableCache ?? workflow.enableCache.\n3. OUTPUT: PromptInstance with caching for consumption by P2.M2.T1.S4."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S4",
+                  "title": "Add cache bypass and management methods",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P2.M2.T1.S3"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptInstance with caching from P2.M2.T1.S3.\n2. LOGIC: In AgentWorkflow, expose cache management: cache.clear(), cache.delete(key), disableCacheForRun() method that sets runtime flag. Log cache hits/misses at debug level. Include cacheHit: boolean in PromptResult.\n3. OUTPUT: Full cache management API per PRD section 7."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M3",
+          "title": "Reflection System",
+          "status": "Planned",
+          "description": "Implement top-down reflection per PRD section 4.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M3.T1",
+              "title": "Reflection Implementation",
+              "status": "Planned",
+              "description": "Enable agents to trigger reflection on failed prompts.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S1",
+                  "title": "Create ReflectionPrompt template",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M2.T3.S5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptConfig from P1.M1.T1.S4.\n2. LOGIC: Create /src/core/reflection.ts with DEFAULT_REFLECTION_PROMPT: PromptConfig. System prompt instructs model to analyze failure and provide corrected output. User prompt template includes: {{originalPrompt}}, {{originalResult}}, {{error}}. Allow custom reflection prompts via config.\n3. OUTPUT: ReflectionPrompt and reflection types exported for consumption by P2.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S2",
+                  "title": "Implement Agent.reflect() method",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P2.M3.T1.S1",
+                    "P1.M2.T2.S4"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: ReflectionPrompt from P2.M3.T1.S1. Agent with retry from P1.M2.T2.S4.\n2. LOGIC: In /src/core/agent.ts, implement reflect(failedResult: PromptResult, overrideModel?: string): Promise<PromptResult>. Create PromptInstance with reflection prompt, resolved model (override || parent). Execute and return. Emit reflection events. Call onReflection hook.\n3. OUTPUT: Agent.reflect() for consumption by P2.M3.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S3",
+                  "title": "Integrate reflection into retry loop",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M3.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Agent.reflect() from P2.M3.T1.S2. Agent.run() with retry from P1.M2.T2.S4.\n2. LOGIC: In Agent.run(), when enableReflection is true and prompt fails: call reflect() before retry. Use reflection result to augment/replace failed result. Track reflectionMetadata: {originalError, reflectionPromptId, reflectionResult} in AgentRunResult.\n3. OUTPUT: Agent with integrated reflection system per PRD section 4."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "Logging, Validation & Production Readiness",
+      "status": "Planned",
+      "description": "Finalize logging infrastructure, add schema validation, and prepare for production use.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Structured Logging",
+          "status": "Planned",
+          "description": "Implement file-based JSON logging per PRD section 6.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "NDJSON File Logger",
+              "status": "Planned",
+              "description": "Create file-based structured logging with full hierarchy.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Create FileLogger adapter",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Extended LogEntry from P1.M1.T2.S2. Existing Logger interface in /src/core/logger.ts.\n2. LOGIC: Create /src/logging/file-logger.ts implementing Logger interface. Write NDJSON (newline-delimited JSON) to file. Include all LogEntry fields. Support log rotation by size. Handle write errors gracefully.\n3. OUTPUT: FileLogger class exported from /src/logging/index.ts for consumption by P3.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S2",
+                  "title": "Implement log hierarchy serialization",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M1.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: FileLogger from P3.M1.T1.S1. Event hierarchy from PRD section 6.\n2. LOGIC: In FileLogger, ensure each log entry includes: workflowId, stepId?, agentId?, promptId?, toolId?. Add path field like 'workflow/step/agent/prompt/tool-call'. Support reconstructing full tree from logs. Add correlation IDs for distributed tracing.\n3. OUTPUT: FileLogger with full hierarchy serialization for consumption by P3.M1.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S3",
+                  "title": "Create log aggregation utilities",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: NDJSON logs from FileLogger P3.M1.T1.S2.\n2. LOGIC: Create /src/logging/log-reader.ts with utilities: readLogs(file): AsyncGenerator<LogEntry>, filterByWorkflow(workflowId), filterByLevel(level), reconstructTree(workflowId): WorkflowNode. Enable post-hoc analysis of runs.\n3. OUTPUT: Log reader utilities for debugging and analysis."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Schema Validation",
+          "status": "Planned",
+          "description": "Implement JSON schema validation for prompt outputs.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "JSON Schema Validation",
+              "status": "Planned",
+              "description": "Validate prompt outputs against optional JSON schemas.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Create SchemaValidator utility",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: PromptConfig.jsonSchema field.\n2. LOGIC: Create /src/validation/schema-validator.ts with validate(data: any, schema: object): ValidationResult. Implement basic JSON Schema draft-07 validation inline (no deps) or use minimal external validator. Return {valid: boolean, errors: string[]}.\n3. OUTPUT: SchemaValidator exported from /src/validation/index.ts for consumption by P3.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S2",
+                  "title": "Integrate validation into PromptInstance",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M2.T1.S1",
+                    "P2.M1.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: SchemaValidator from P3.M2.T1.S1. PromptInstance from P2.M1.T1.S2.\n2. LOGIC: In PromptInstance.run(), if config.jsonSchema defined: parse response content as JSON, validate against schema. On failure: call hooks.onValidationError, set PromptResult.error with validation details. Support retry on validation failure.\n3. OUTPUT: PromptInstance with schema validation for production use."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "API Surface & Exports",
+          "status": "Planned",
+          "description": "Finalize public API and ensure clean exports.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Public API Definition",
+              "status": "Planned",
+              "description": "Define and export the public API surface.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Create main entry point exports",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M3.T1.S3",
+                    "P3.M2.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: All implemented classes from P1-P3.\n2. LOGIC: Update /src/index.ts to export public API: AgentWorkflow, Agent, PromptInstance, ToolExecutor, Cache/MemoryCache, FileLogger, WorkflowTreeDebugger. Export all type interfaces. Do NOT export internal utilities. Follow existing export patterns in codebase.\n3. OUTPUT: Clean public API in /src/index.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S2",
+                  "title": "Add JSDoc documentation to public APIs",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P3.M3.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Public API from P3.M3.T1.S1.\n2. LOGIC: Add comprehensive JSDoc comments to all public classes and methods. Include @param, @returns, @throws, @example tags. Document configuration options. Ensure TypeScript generates .d.ts with documentation.\n3. OUTPUT: Fully documented public API for consumers."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M3.T2",
+              "title": "Integration Examples",
+              "status": "Planned",
+              "description": "Create comprehensive examples demonstrating the full system.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S1",
+                  "title": "Create basic workflow example",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M3.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Public API from P3.M3.T1.S1. PRD section 10.1 example.\n2. LOGIC: Create /examples/07-basic-agent-workflow.ts demonstrating: workflow with defaultModel, step with agent, agent with prompts, cacheable prompt. Follow existing example patterns in /examples/. Include comments explaining each part.\n3. OUTPUT: Working example file for consumption by users."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S2",
+                  "title": "Create reflection example",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M3.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Basic example from P3.M3.T2.S1. PRD section 10.2 example.\n2. LOGIC: Create /examples/08-agent-reflection.ts demonstrating: agent with enableReflection, maxRetries, jsonSchema validation, reflection triggering on validation failure. Show reflection metadata in result.\n3. OUTPUT: Working reflection example."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S3",
+                  "title": "Create tool calling example",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M3.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Basic example from P3.M3.T2.S1.\n2. LOGIC: Create /examples/09-agent-tools.ts demonstrating: defining ToolDefinition[], implementing tool handlers, agent executing prompts that use tools, tool call events in result. Include practical tool examples (calculator, web search mock).\n3. OUTPUT: Working tool calling example."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S4",
+                  "title": "Create streaming example",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P3.M3.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. INPUT: Basic example from P3.M3.T2.S1. Streaming API from P2.M1.T3.\n2. LOGIC: Create /examples/10-streaming-workflow.ts demonstrating: workflow.runStreaming(), consuming AsyncGenerator, real-time token output, streaming with tree debugger visualization.\n3. OUTPUT: Working streaming example."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

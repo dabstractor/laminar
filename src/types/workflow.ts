@@ -1,3 +1,10 @@
+import type { LogEntry } from './logging.js';
+import type { WorkflowEvent } from './events.js';
+import type { SerializedWorkflowState } from './snapshot.js';
+import type { TokenUsage } from './token-usage.js';
+import type { ToolCallEvent } from './tool.js';
+import type { MCPEvent } from './mcp.js';
+
 /**
  * Workflow status representing the current execution state
  */
@@ -8,10 +15,10 @@ export type WorkflowStatus =
   | 'failed'
   | 'cancelled';
 
-// Forward declarations - import from their respective files
-import type { LogEntry } from './logging.js';
-import type { WorkflowEvent } from './events.js';
-import type { SerializedWorkflowState } from './snapshot.js';
+/**
+ * Node type in the execution tree
+ */
+export type WorkflowNodeType = 'workflow' | 'step' | 'agent' | 'prompt' | 'tool' | 'mcp';
 
 /**
  * Represents a node in the workflow execution tree
@@ -34,4 +41,13 @@ export interface WorkflowNode {
   events: WorkflowEvent[];
   /** Optional serialized state snapshot */
   stateSnapshot: SerializedWorkflowState | null;
+  // New fields for agent/prompt nodes
+  /** Type of this node */
+  nodeType?: WorkflowNodeType;
+  /** Token usage if applicable */
+  tokenUsage?: TokenUsage;
+  /** Tool calls if this is a prompt node */
+  toolCalls?: ToolCallEvent[];
+  /** MCP events if applicable */
+  mcpEvents?: MCPEvent[];
 }

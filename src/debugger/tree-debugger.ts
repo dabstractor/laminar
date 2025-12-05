@@ -19,6 +19,18 @@ const STATUS_SYMBOLS: Record<string, string> = {
 };
 
 /**
+ * Node type symbols for tree visualization
+ */
+const NODE_TYPE_SYMBOLS: Record<string, string> = {
+  workflow: 'W',
+  step: 'S',
+  agent: 'A',
+  prompt: 'P',
+  tool: 'T',
+  mcp: 'M',
+};
+
+/**
  * Tree debugger for real-time workflow visualization
  * Implements WorkflowObserver to receive all events
  */
@@ -118,9 +130,16 @@ export class WorkflowTreeDebugger implements WorkflowObserver {
   ): string {
     let result = '';
 
-    // Status symbol and color indicator
+    // Status symbol and node type
     const statusSymbol = STATUS_SYMBOLS[node.status] || '?';
-    const nodeInfo = `${statusSymbol} ${node.name} [${node.status}]`;
+    const typeSymbol = node.nodeType ? `[${NODE_TYPE_SYMBOLS[node.nodeType] ?? '?'}]` : '';
+
+    // Token usage if available
+    const tokenInfo = node.tokenUsage
+      ? ` (${node.tokenUsage.inputTokens}↓ ${node.tokenUsage.outputTokens}↑)`
+      : '';
+
+    const nodeInfo = `${statusSymbol} ${typeSymbol} ${node.name} [${node.status}]${tokenInfo}`;
 
     if (isRoot) {
       result += nodeInfo + '\n';
